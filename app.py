@@ -5,9 +5,26 @@ import pandas as pd
 import requests
 
 def fetch_poster(movie_id):
-    response=requests.get('https://api.themoviedb.org/3/movie/{}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US'.format(movie_id))
-    data=response.json()
-    return "https://image.tmdb.org/t/p/w500/" + data['poster_path']
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    params = {
+        "api_key": "8265bd1679663a7ea12ac168da84d2e8",
+        "language": "en-US"
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("poster_path"):
+            return "https://image.tmdb.org/t/p/w500/" + data["poster_path"]
+        else:
+            return "https://via.placeholder.com/500x750?text=No+Poster"
+
+    except requests.exceptions.RequestException as e:
+        print("TMDB error:", e)
+        return "https://via.placeholder.com/500x750?text=Error"
+
 
 def recommend(movie):
     movie_index= movies[movies['title']==movie].index[0]
@@ -40,7 +57,7 @@ Select_movie_name=st.selectbox(
 
 if st.button('Recommend'):
     name , poster=recommend(Select_movie_name)
-    col1, col2, col3,col4,col5=st.columns(3)
+    col1, col2, col3,col4,col5=st.columns(5)
     with col1:
         st.text(name[0])
         st.image(poster[0])
